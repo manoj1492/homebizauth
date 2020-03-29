@@ -3,6 +3,7 @@ package com.homebiz.auth.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -23,7 +24,8 @@ import com.homebiz.auth.filter.AuthRequestFilter;
 import com.homebiz.auth.filter.JwtAuthenticationEntryPoint;
 
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Order(2)
+public class JwtSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	@Autowired
@@ -36,7 +38,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 // configure AuthenticationManager so that it knows from where to load
 // user for matching credentials
 // Use BCryptPasswordEncoder
-		auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
+		//auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
 	}
 
 	@Bean
@@ -52,38 +54,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
-		//Enabling Cors
-		httpSecurity.cors();
-// We don't need CSRF for this example
-		httpSecurity.csrf().disable()
 // dont authenticate this particular request
-				.authorizeRequests().antMatchers("/auth/authenticate").permitAll().
+		httpSecurity.authorizeRequests().antMatchers("/auth/authenticate").permitAll();
 // all other requests need to be authenticated
-				anyRequest().authenticated().and().
+				/*.anyRequest().authenticated().and().
 // make sure we use stateless session; session won't be used to
 // store user's state.
 				exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);*/
 // Add a filter to validate the tokens with every request
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
-	
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
-		 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		  CorsConfiguration config = new CorsConfiguration();
-		  config.addAllowedOrigin("*");
-		  config.setAllowCredentials(true);
-		 // config.addAllowedHeader("X-Requested-With");
-		  config.addAllowedHeader("*");
-		  config.addAllowedMethod(HttpMethod.POST);
-		  source.registerCorsConfiguration("/**", config);
-		  
-		return source;
-	}
-	
-	
-	
 	
 	
 }

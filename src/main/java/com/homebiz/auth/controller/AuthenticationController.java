@@ -32,10 +32,14 @@ public class AuthenticationController {
 
 	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthenticationToken(@RequestHeader("authenticationType") String authenticationType,  @RequestBody AuthRequest authenticationRequest) throws Exception {
+		// authenticate if the user is valid or not
 		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword(), authenticationType);
+		// load User details to generation token if authentication is valid
 		final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
+		// generate token
 		final String token = jwtTokenUtil.generateToken(userDetails);
-		return ResponseEntity.ok(new AuthResponse(token));
+		// building up response
+		return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), jwtTokenUtil.getExpirationDateFromToken(token)));
 	}
 
 	private void authenticate(String username, String password, String authenticationType) throws Exception {
